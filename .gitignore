@@ -1,0 +1,8 @@
+config.xqy
+
+*.zip
+*.rdf
+*.nq
+
+data/*/**
+

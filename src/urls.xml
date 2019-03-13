@@ -1,0 +1,72 @@
+<rewriter xmlns="http://marklogic.com/xdmp/rewriter">
+
+     <!-- Load data -->
+    <match-path matches="^/load/([a-zA-Z0-9]+)/$">
+        <add-query-param name="dataset">$1</add-query-param>
+        <match-method any-of="POST">
+            <dispatch>/controllers/load.xqy</dispatch>
+        </match-method>
+        <set-query-param name="code">405</set-query-param>
+        <dispatch>/controllers/error.xqy</dispatch>
+    </match-path>
+    
+    <!-- Dataset: Compare  -->
+    <match-path matches="^/datasets/compare/([a-zA-Z0-9\-_]+).html$">
+        <add-query-param name="comparison">$1</add-query-param>
+        <match-method any-of="GET">
+            <dispatch>/controllers/compare.xqy</dispatch>
+        </match-method>
+    </match-path>
+   
+    <!-- Dataset: GET DELETE -->
+    <match-path matches="^/resources/([a-zA-Z0-9]+)/$">
+        <add-query-param name="dataset">$1</add-query-param>
+        <set-query-param name="identifier">all</set-query-param>
+        <match-method any-of="DELETE">
+            <dispatch>/controllers/resources/delete.xqy</dispatch>
+        </match-method>
+    </match-path>
+    <match-path matches="^/resources/([a-zA-Z0-9]+)/statistics/([a-zA-Z0-9\-_]+).(html|xml|json)$">
+        <add-query-param name="dataset">$1</add-query-param>
+        <add-query-param name="view">$2</add-query-param>
+        <add-query-param name="serialization">$3</add-query-param>
+        <match-method any-of="GET">
+            <dispatch>/controllers/statistics.xqy</dispatch>
+        </match-method>
+    </match-path>
+    <!-- Searching -->
+    <match-path matches="^/search/$">
+        <dispatch>/controllers/search.xqy</dispatch>
+    </match-path>
+    <match-path matches="^/resources/([a-zA-Z0-9]+)/search/$">
+        <add-query-param name="dataset">$1</add-query-param>
+        <dispatch>/controllers/search.xqy</dispatch>
+    </match-path>
+    <!-- Resource: GET specific serialization -->
+    <match-path matches="^/resources/([a-zA-Z0-9]+)/([a-zA-Z0-9/\-_]+).(cbd\.|)(html|nt|rdf|n3|ttl)$">
+        <add-query-param name="dataset">$1</add-query-param>
+        <add-query-param name="identifier">$2</add-query-param>
+        <add-query-param name="view">$3</add-query-param>
+        <add-query-param name="serialization">$4</add-query-param>
+        <match-method any-of="GET">
+            <dispatch>/controllers/get.xqy</dispatch>
+        </match-method>
+    </match-path>
+    <!-- Resource: GET/REDIRECT DELETE -->
+    <match-path matches="^/resources/([a-zA-Z0-9]+)/([a-zA-Z0-9/\-_]+)$">
+        <add-query-param name="dataset">$1</add-query-param>
+        <add-query-param name="identifier">$2</add-query-param>
+        <match-method any-of="GET">
+            <dispatch>/controllers/redirect.xqy</dispatch>
+        </match-method>
+        <match-method any-of="DELETE">
+            <dispatch>/controllers/resources/delete.xqy</dispatch>
+        </match-method>
+    </match-path>
+    
+
+        
+   <match-path matches="^(/.+)">
+      <dispatch>$1</dispatch>
+   </match-path>
+</rewriter>

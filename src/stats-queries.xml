@@ -1,0 +1,144 @@
+<stats-queries xmlns="info:lc/ns/casalini/stats-queries">
+    <prefixes>
+        <![CDATA[
+            PREFIX bf: <http://id.loc.gov/ontologies/bibframe/>
+            PREFIX bftype: <http://mlvlp06.loc.gov:8294/resources/id/ontologies/bibframe/>
+            PREFIX bfsvde: <http://share-vde.org/rdfBibframe/>
+        ]]>
+    </prefixes>
+    <stats-query name="triples-count">
+        <query dataset="all">
+            <![CDATA[
+                SELECT (COUNT(*) as ?count)
+                WHERE {
+                    GRAPH $g {
+                        ?s ?p ?o .
+                    }
+                }
+            ]]>
+        </query>
+    </stats-query>
+    <stats-query name="bfworks-count">
+        <query dataset="all">
+            <![CDATA[
+                SELECT (COUNT(*) as ?count)
+                WHERE {
+                    GRAPH $g {
+                        ?s a bftype:Work .
+                    }
+                }
+            ]]>
+        </query>
+    </stats-query>
+    <stats-query name="rdaworks-count">
+        <query dataset="casalini">
+            <![CDATA[
+                SELECT (COUNT(DISTINCT ?s) as ?count)
+                WHERE {
+                    GRAPH $g {
+                        ?s a bfsvde:SuperWork .
+                    }
+                }
+            ]]>
+        </query>
+        <query dataset="lc">
+            <![CDATA[
+                SELECT (COUNT(DISTINCT ?s) as ?count)
+                WHERE {
+                    GRAPH $g {
+                        ?s a bftype:Work .
+                        FILTER NOT EXISTS {
+                            {
+                                ?s bf:hasInstance ?i .
+                            } UNION {
+                                ?i bf:instanceOf ?s .
+                            }
+                       } .
+                    }
+                }
+            ]]>
+        </query>
+    </stats-query>
+    <stats-query name="rdaexpressions-count">
+        <query dataset="casalini">
+            <![CDATA[
+                SELECT (COUNT(DISTINCT ?s) as ?count)
+                WHERE {
+                    GRAPH $g {
+                        ?s a bftype:Work .
+                        ?s bf:hasExpression ?e .
+                    }
+                }
+            ]]>
+        </query>
+        <query dataset="lc">
+            <![CDATA[
+                SELECT (COUNT(DISTINCT ?s) as ?count)
+                WHERE {
+                    GRAPH $g {
+                        ?s a bftype:Work .
+                        {
+                            ?s bf:hasInstance ?i .
+                        } UNION {
+                            ?i bf:instanceOf ?s .
+                        }
+                    }
+                }
+            ]]>
+        </query>
+    </stats-query>
+    <stats-query name="bfinstances-count">
+        <query dataset="all">
+            <![CDATA[
+                SELECT (COUNT(*) as ?count)
+                WHERE {
+                    GRAPH $g {
+                        ?s a bftype:Instance .
+                    }
+                }
+            ]]>
+        </query>
+    </stats-query>
+    <stats-query name="nates-works-instances-by-lccn">
+        <query dataset="lc">
+            <![CDATA[
+                SELECT (COUNT(*) as ?count)
+                WHERE {
+                    GRAPH $g {
+                        ?w a bftype:Work .
+                        ?w bf:hasInstance ?i .
+                        ?i bf:identifiedBy ?id .
+                        ?id a bftype:Lccn .
+                    }
+                }
+            ]]>
+        </query>
+        <query dataset="casalini">
+            <![CDATA[
+                SELECT (COUNT(*) as ?count)
+                WHERE {
+                    GRAPH $g {
+                        ?w a bftype:Work .
+                        ?i bf:instanceOf ?w .
+                        ?i bf:identifiedBy ?id .
+                        ?id a bftype:Lccn .
+                    }
+                }
+            ]]>
+        </query>
+    </stats-query>
+    <stats-query name="types">
+        <query dataset="all">
+            <![CDATA[
+                SELECT ?t (COUNT(?t) as ?count) 
+                WHERE {
+                    GRAPH $g {
+                        ?s a ?t .
+                    }
+                }
+                GROUP BY ?t
+                ORDER BY DESC(?count)
+            ]]>
+        </query>
+    </stats-query>
+</stats-queries>
