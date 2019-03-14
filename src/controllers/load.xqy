@@ -32,7 +32,7 @@ declare function local:process-triples($triples, $headers, $c) {
         for $t in $triples
         let $s := sem:triple-subject($t)
         let $_ := 
-            if ( xdmp:type($s) eq xs:QName("sem:iri") ) then
+            if ( xdmp:type($s) eq xs:QName("sem:iri") or xdmp:type($s) eq xs:QName("sem:blank") ) then
                 let $_ :=
                     for $i at $pos in $uri-search
                     return xdmp:set($s, fn:replace($s, $i, $uri-replace[$pos]))
@@ -42,7 +42,12 @@ declare function local:process-triples($triples, $headers, $c) {
         let $p := sem:triple-predicate($t)
         let $o := sem:triple-object($t)
         let $_ := 
-            if ( xdmp:type($o) eq xs:QName("sem:iri") ) then
+            if (    (
+                        xdmp:type($o) eq xs:QName("sem:iri") or 
+                        xdmp:type($o) eq xs:QName("sem:blank")
+                    ) and
+                    xs:string($p) ne "http://www.w3.org/1999/02/22-rdf-syntax-ns#type"
+                ) then
                 let $_ := 
                     for $i at $pos in $uri-search
                     return xdmp:set($o, fn:replace($o, $i, $uri-replace[$pos]))

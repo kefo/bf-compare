@@ -36,6 +36,11 @@ let $accept-type :=
     else
         $accept-type
 let $directory := fn:concat("/", $dataset, "/")
+let $dirsearch := 
+    if ( $dataset ne "" ) then
+        cts:directory-query( $directory )
+    else
+        ()
 
 let $options := 
     <options xmlns="http://marklogic.com/appservices/search">
@@ -54,7 +59,8 @@ let $options :=
 let $ctsquery := cts:query(search:parse($q, $options))
 let $params := 
     map:new((
-        map:entry("ctsquery", $ctsquery)
+        map:entry("ctsquery", $ctsquery),
+        map:entry("obj", sem:iri($q))
     ))
     
 let $query := '
@@ -94,13 +100,23 @@ let $query := '
                 ?ins bf:instanceOf ?s .
             }
             ?s a ?type .
+        } UNION {
+            ?s a $obj .
+            # FILTER( isIRI(?s) ) .
+            OPTIONAL{ ?s rdfs:label|rdf:value ?l . }
+            ?s a ?type .
         }
     }
-    group by ?s
+    GROUP BY ?s
     LIMIT 1000
     '
-(: let $store := sem:store((), $ctsquery) :)
-let $results := sem:sparql($query, $params)
+let $store := sem:store((), $dirsearch)
+let $results := sem:sparql($query, $params, (), $store)
+let $results := 
+    if ( fn:empty(map:get($results[1], "s")) eq fn:true() ) then
+        ()
+    else
+        $results
 
 let $total := xs:string(fn:count($results))
 let $hits := 

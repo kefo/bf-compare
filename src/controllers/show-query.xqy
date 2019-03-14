@@ -17,44 +17,30 @@ declare namespace madsrdf       = "http://www.loc.gov/mads/rdf/v1#";
 declare namespace idx   = "info:lc/xq-modules/lcindex";
 declare namespace ldsstaging   = "info:lc/xq-modules/ldsstaging";
 declare namespace sparql = "http://www.w3.org/2005/sparql-results#";
+declare namespace sq    = "info:lc/ns/casalini/stats-queries";
 
-declare namespace compare = 'info:lc/casalini/compare#';
-
-declare variable $comparison as xs:string := xdmp:get-request-field("comparison", "");
-declare variable $datasets := xdmp:get-request-field("dataset");
-
-let $headers := headers:get()
-let $host := fn:concat(xdmp:get-request-protocol(), "://", map:get($headers, "host"))
-let $format := "html"
-let $datasets := 
-    for $i in $datasets
-    where $i ne ""
-    return $i
+declare variable $view as xs:string := xdmp:get-request-field("view", "");
+declare variable $serialization as xs:string := xdmp:get-request-field("serialization", "");
 
 let $headers := headers:get()
 let $accept-type := headers:get-acceptType()
 let $accept-type := 
-    if ($format ne "") then
-        if ($format eq "xml") then
+    if ($serialization ne "") then
+        if ($serialization eq "xml") then
             "application/xml"
+        else if ($serialization eq "json") then
+            "application/json"
         else
             "text/html"
     else
         $accept-type
 
-let $cmap := map:get($config:COMPARISONS, $comparison)
-let $vars := 
-    map:new((
-        map:entry(xdmp:key-from-QName(xs:QName("compare:host")), $host),
-        map:entry(xdmp:key-from-QName(xs:QName("compare:datasets")), $datasets),
-        map:entry(xdmp:key-from-QName(xs:QName("compare:cmap")), $cmap)
-    ))
-let $div := xdmp:invoke( map:get($cmap, "xqyfile"), $vars)
+let $sq := $config:STATS-QUERIES/sq:stats-queries/sq:stats-query[xs:string(@name) eq $view]
 
 let $html := 
     <html>
         <head>
-            <title>Compare: {$comparison}</title>
+            <title>Query: {$view}</title>
             <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous" />
             <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.18/css/dataTables.bootstrap4.min.css" crossorigin="anonymous" />
             <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"><![CDATA[ ]]></script>
@@ -66,33 +52,32 @@ let $html :=
         <body>
             <div class="container">
                 <div class="row">
-                    <div>
-                        <h1>Compare: {$comparison}</h1>
+                    <div class="col-12">
+                        <h1>Query: {$view}</h1>
+                        <hr />
+                        <p>{$sq/sq:description/text()}</p>
+                        <hr />
+                        {
+                        for $q in $sq/sq:query
+                        return
+                            <div>
+                                <h2>Dataset: {xs:string($q/@dataset)}</h2>
+                                <pre><code>{xdmp:quote($q/text())}</code></pre>
+                            </div>
+                    }
                     </div>
-                    {$div}
                 </div>
             </div>
-            <script>
-            <![CDATA[
-                $(document).ready( function () {
-                    $('#t1').DataTable( 
-                        {
-                            paging: false
-                        } 
-                    )
-                });
-            ]]>
-            </script>
         </body>
     </html>
 
 return
-    if ( fn:local-name($div) eq "div" ) then
+    if ($accept-type eq "text/html") then
         (
             xdmp:set-response-code(200, "OK"),
             xdmp:add-response-header("Content-type", "text/html"),
             $html
         )
     else
-        $div
-        
+        $sq
+    

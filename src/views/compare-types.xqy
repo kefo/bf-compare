@@ -72,12 +72,12 @@ let $rows :=
     element tbody {
         for $k in map:keys($types)
         let $qmap := map:get($types, $k)
-        let $name := fn:replace($k, "http://mlvlp06.loc.gov:8294/resources/id/", "http://id.loc.gov/")
+        let $name := $k
         return
             element tr {
                 element th {
                     attribute scope {"row"},
-                    $name
+                    <a href="{fn:concat('/search/?q=', $name)}">{$name}</a>
                 },
                 for $d in $compare:datasets
                 let $sresults := map:get($qmap, $d)
@@ -86,13 +86,14 @@ let $rows :=
                         if ( fn:empty($sresults) eq fn:true() ) then
                             "0"
                         else
-                            $sresults
+                            <a href="{fn:concat('/search/?q=', $name)}">{$sresults}</a>
                     }
                 
             }
     }
 let $table := 
     element table {
+        attribute id {"t1"},
         attribute class {"table table-striped"},
         $head,
         $rows
@@ -100,6 +101,10 @@ let $table :=
 
 return 
     element div {
+        attribute class {"col-12"},
+        <p>Clicking a blue link will initiate a search for resources that
+        are of the selected type.</p>,
+        <p>The query that returned these results can be seen <a href="/queries/types.html">here</a>.</p>,
         $table
     }
 

@@ -58,7 +58,7 @@ let $rows :=
             element tr {
                 element th {
                     attribute scope {"row"},
-                    $k
+                    <a href="{fn:concat('/queries/', $k, '.html')}">{$k}</a>
                 },
                 for $d in $compare:datasets
                 let $sresults := map:get($qmap, $d)
@@ -72,6 +72,7 @@ let $rows :=
     }
 let $table := 
     element table {
+        attribute id {"t1"},
         attribute class {"table table-striped"},
         $head,
         $rows

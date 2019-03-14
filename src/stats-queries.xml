@@ -2,11 +2,11 @@
     <prefixes>
         <![CDATA[
             PREFIX bf: <http://id.loc.gov/ontologies/bibframe/>
-            PREFIX bftype: <http://mlvlp06.loc.gov:8294/resources/id/ontologies/bibframe/>
             PREFIX bfsvde: <http://share-vde.org/rdfBibframe/>
         ]]>
     </prefixes>
     <stats-query name="triples-count">
+        <description>Basic count of all triples in a given graph.</description>
         <query dataset="all">
             <![CDATA[
                 SELECT (COUNT(*) as ?count)
@@ -19,18 +19,23 @@
         </query>
     </stats-query>
     <stats-query name="bfworks-count">
+        <description>Simply how many resources are of bf:Work type in a given graph.</description>
         <query dataset="all">
             <![CDATA[
-                SELECT (COUNT(*) as ?count)
+                SELECT (COUNT(?s) as ?count)
                 WHERE {
                     GRAPH $g {
-                        ?s a bftype:Work .
+                        ?s a bf:Work .
                     }
                 }
             ]]>
         </query>
     </stats-query>
     <stats-query name="rdaworks-count">
+        <description>Simply how many SuperWorks.  For the Casalini dataset, for example, 
+        this is a simple count of how many resources are of bfsvde:SuperWork type.
+        For the LC dataset, on the other hand, a "SuperWork" in this dataset is any bf:Work
+        that does not link to a bf:Instance.</description>
         <query dataset="casalini">
             <![CDATA[
                 SELECT (COUNT(DISTINCT ?s) as ?count)
@@ -46,7 +51,7 @@
                 SELECT (COUNT(DISTINCT ?s) as ?count)
                 WHERE {
                     GRAPH $g {
-                        ?s a bftype:Work .
+                        ?s a bf:Work .
                         FILTER NOT EXISTS {
                             {
                                 ?s bf:hasInstance ?i .
@@ -60,13 +65,17 @@
         </query>
     </stats-query>
     <stats-query name="rdaexpressions-count">
+        <description>Simply how many RDA Expressions.  For the Casalini dataset, for example, 
+        this is a simple count of how many resources are of bf:Work type *and* have a 
+        bf:hasExpression relationship. For the LC dataset, on the other hand, an RDA 
+        Expression is defined as any bf:Work that relates to an Instance.</description>
         <query dataset="casalini">
             <![CDATA[
                 SELECT (COUNT(DISTINCT ?s) as ?count)
                 WHERE {
                     GRAPH $g {
-                        ?s a bftype:Work .
-                        ?s bf:hasExpression ?e .
+                        ?w a bf:Work .
+                        ?w bf:hasExpression ?s .
                     }
                 }
             ]]>
@@ -76,7 +85,7 @@
                 SELECT (COUNT(DISTINCT ?s) as ?count)
                 WHERE {
                     GRAPH $g {
-                        ?s a bftype:Work .
+                        ?s a bf:Work .
                         {
                             ?s bf:hasInstance ?i .
                         } UNION {
@@ -88,46 +97,41 @@
         </query>
     </stats-query>
     <stats-query name="bfinstances-count">
+        <description>Simply how many resources are of bf:Instance type in a given graph.</description>
         <query dataset="all">
             <![CDATA[
-                SELECT (COUNT(*) as ?count)
+                SELECT (COUNT(?s) as ?count)
                 WHERE {
                     GRAPH $g {
-                        ?s a bftype:Instance .
+                        ?s a bf:Instance .
                     }
                 }
             ]]>
         </query>
     </stats-query>
     <stats-query name="nates-works-instances-by-lccn">
-        <query dataset="lc">
+        <description>Nate's special query, I think.</description>
+        <query dataset="all">
             <![CDATA[
-                SELECT (COUNT(*) as ?count)
+                SELECT (COUNT(DISTINCT ?w) as ?count)
                 WHERE {
                     GRAPH $g {
-                        ?w a bftype:Work .
-                        ?w bf:hasInstance ?i .
+                        ?w a bf:Work .
+                        {
+                            ?w bf:hasInstance ?i .
+                        } UNION {
+                            ?i bf:instanceOf ?w .
+                        }
                         ?i bf:identifiedBy ?id .
-                        ?id a bftype:Lccn .
-                    }
-                }
-            ]]>
-        </query>
-        <query dataset="casalini">
-            <![CDATA[
-                SELECT (COUNT(*) as ?count)
-                WHERE {
-                    GRAPH $g {
-                        ?w a bftype:Work .
-                        ?i bf:instanceOf ?w .
-                        ?i bf:identifiedBy ?id .
-                        ?id a bftype:Lccn .
+                        ?id a bf:Lccn .
                     }
                 }
             ]]>
         </query>
     </stats-query>
     <stats-query name="types">
+        <description>Universe of types per given graph and how many resources are 
+        of those types in the given graph.</description>
         <query dataset="all">
             <![CDATA[
                 SELECT ?t (COUNT(?t) as ?count) 

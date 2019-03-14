@@ -11,6 +11,15 @@
     </match-path>
     
     <!-- Dataset: Compare  -->
+    <match-path matches="^/queries/([a-zA-Z0-9\-_]+).(html|xml)$">
+        <add-query-param name="view">$1</add-query-param>
+        <add-query-param name="serialization">$2</add-query-param>
+        <match-method any-of="GET">
+            <dispatch>/controllers/show-query.xqy</dispatch>
+        </match-method>
+    </match-path>
+    
+    <!-- Dataset: Compare  -->
     <match-path matches="^/datasets/compare/([a-zA-Z0-9\-_]+).html$">
         <add-query-param name="comparison">$1</add-query-param>
         <match-method any-of="GET">
@@ -64,6 +73,12 @@
         </match-method>
     </match-path>
     
+    
+    <match-path matches="^/$">
+        <match-method any-of="GET">
+            <dispatch>/controllers/index.xqy</dispatch>
+        </match-method>
+    </match-path>
 
         
    <match-path matches="^(/.+)">
